@@ -1,973 +1,494 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Building a Lightweight Python SIEM | Aibel</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-primary: #0a0a0f;
-            --bg-secondary: #12121a;
-            --bg-card: #16161f;
-            --bg-card-hover: #1c1c28;
-            --accent-primary: #00ff88;
-            --accent-secondary: #00d4ff;
-            --accent-purple: #8864ff;
-            --accent-gradient: linear-gradient(135deg, #8864ff 0%, #00d4ff 100%);
-            --text-primary: #f0f0f5;
-            --text-secondary: #9898a8;
-            --text-muted: #6b6b7a;
-            --border-color: #2a2a3a;
-            --glow-primary: rgba(136, 100, 255, 0.15);
-            --glow-secondary: rgba(0, 212, 255, 0.15);
-            --code-bg: #1a1a24;
-            --code-border: #2a2a3a;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: 'Outfit', sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.8;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        .bg-grid {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                linear-gradient(rgba(136, 100, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(136, 100, 255, 0.03) 1px, transparent 1px);
-            background-size: 60px 60px;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .bg-glow {
-            position: fixed;
-            width: 600px;
-            height: 600px;
-            border-radius: 50%;
-            filter: blur(120px);
-            opacity: 0.3;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .bg-glow-1 {
-            top: -200px;
-            right: -200px;
-            background: var(--glow-primary);
-        }
-
-        .bg-glow-2 {
-            bottom: -200px;
-            left: -200px;
-            background: var(--glow-secondary);
-        }
-
-        /* Navigation */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            padding: 1.5rem 3rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 1000;
-            background: rgba(10, 10, 15, 0.9);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .logo {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.4rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-decoration: none;
-        }
-
-        .logo span {
-            -webkit-text-fill-color: var(--text-muted);
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            align-items: center;
-        }
-
-        .nav-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-        }
-
-        .nav-links a:hover {
-            color: var(--accent-primary);
-        }
-
-        .social-icons {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .social-icons a {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            transition: all 0.3s ease;
-        }
-
-        .social-icons a:hover {
-            background: var(--bg-card-hover);
-            border-color: var(--accent-primary);
-            color: var(--accent-primary);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 255, 136, 0.15);
-        }
-
-        .social-icons svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        /* Article */
-        main {
-            position: relative;
-            z-index: 1;
-            min-height: 100vh;
-            padding-top: 100px;
-        }
-
-        .article-header {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 4rem 2rem 2rem;
-            text-align: center;
-        }
-
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.9rem;
-            margin-bottom: 2rem;
-            transition: all 0.3s ease;
-        }
-
-        .back-link:hover {
-            color: var(--accent-purple);
-        }
-
-        .back-link svg {
-            width: 18px;
-            height: 18px;
-        }
-
-        .article-meta {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        .article-tag {
-            display: inline-block;
-            padding: 0.4rem 1rem;
-            background: rgba(136, 100, 255, 0.1);
-            border: 1px solid rgba(136, 100, 255, 0.3);
-            border-radius: 6px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            color: var(--accent-purple);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .article-date {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
-
-        .article-header h1 {
-            font-size: clamp(1.8rem, 4vw, 3rem);
-            font-weight: 700;
-            line-height: 1.2;
-            margin-bottom: 1.5rem;
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .article-intro {
-            font-size: 1.15rem;
-            color: var(--text-secondary);
-            max-width: 750px;
-            margin: 0 auto;
-        }
-
-        /* Article Content */
-        .article-content {
-            max-width: 850px;
-            margin: 0 auto;
-            padding: 3rem 2rem 6rem;
-        }
-
-        .article-content h2 {
-            font-size: 1.7rem;
-            font-weight: 600;
-            margin: 3rem 0 1.5rem;
-            color: var(--text-primary);
-            position: relative;
-            padding-left: 1rem;
-            border-left: 3px solid var(--accent-purple);
-        }
-
-        .article-content h3 {
-            font-size: 1.35rem;
-            font-weight: 600;
-            margin: 2.5rem 0 1rem;
-            color: var(--text-primary);
-        }
-
-        .article-content h4 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin: 2rem 0 1rem;
-            color: var(--accent-purple);
-        }
-
-        .article-content p {
-            color: var(--text-secondary);
-            margin-bottom: 1.5rem;
-            font-size: 1.02rem;
-        }
-
-        .article-content strong {
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        .article-content em {
-            color: var(--accent-primary);
-            font-style: italic;
-        }
-
-        .article-content ul, 
-        .article-content ol {
-            margin: 1.5rem 0;
-            padding-left: 1.5rem;
-        }
-
-        .article-content li {
-            color: var(--text-secondary);
-            margin-bottom: 0.75rem;
-            font-size: 1.02rem;
-        }
-
-        .article-content li::marker {
-            color: var(--accent-purple);
-        }
-
-        .article-content a {
-            color: var(--accent-secondary);
-            text-decoration: none;
-            border-bottom: 1px solid rgba(0, 212, 255, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .article-content a:hover {
-            color: var(--accent-primary);
-            border-bottom-color: var(--accent-primary);
-        }
-
-        .article-content hr {
-            border: none;
-            height: 1px;
-            background: var(--border-color);
-            margin: 3rem 0;
-        }
-
-        /* Code blocks */
-        code {
-            font-family: 'JetBrains Mono', monospace;
-            background: var(--code-bg);
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.88rem;
-            color: var(--accent-secondary);
-        }
-
-        pre {
-            background: var(--code-bg);
-            border: 1px solid var(--code-border);
-            border-radius: 12px;
-            padding: 1.25rem 1.5rem;
-            overflow-x: auto;
-            margin: 1.5rem 0;
-            position: relative;
-        }
-
-        pre::before {
-            content: attr(data-lang);
-            position: absolute;
-            top: 0;
-            right: 0;
-            padding: 0.25rem 0.75rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            background: var(--border-color);
-            border-radius: 0 12px 0 8px;
-            text-transform: uppercase;
-        }
-
-        pre code {
-            background: none;
-            padding: 0;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            line-height: 1.6;
-        }
-
-        /* Info Box */
-        .info-box {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-left: 4px solid var(--accent-purple);
-            border-radius: 12px;
-            padding: 1.5rem 2rem;
-            margin: 2rem 0;
-        }
-
-        .info-box h4 {
-            color: var(--accent-purple);
-            margin-top: 0;
-            margin-bottom: 1rem;
-        }
-
-        .info-box p {
-            margin-bottom: 0;
-        }
-
-        .info-box ul {
-            margin-bottom: 0;
-        }
-
-        .info-box li:last-child {
-            margin-bottom: 0;
-        }
-
-        /* Event Card */
-        .event-cards {
-            display: grid;
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-
-        .event-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .event-card:hover {
-            border-color: rgba(136, 100, 255, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .event-card-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .event-id {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            padding: 0.25rem 0.75rem;
-            background: rgba(136, 100, 255, 0.15);
-            border-radius: 6px;
-            color: var(--accent-purple);
-        }
-
-        .event-card h4 {
-            color: var(--text-primary);
-            font-size: 1.05rem;
-            margin: 0;
-        }
-
-        .event-card p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            margin: 0;
-        }
-
-        /* Architecture Diagram */
-        .architecture {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 2rem;
-            margin: 2rem 0;
-            text-align: center;
-        }
-
-        .architecture h4 {
-            margin-bottom: 1.5rem;
-            color: var(--text-primary);
-        }
-
-        .arch-flow {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .arch-box {
-            background: rgba(136, 100, 255, 0.1);
-            border: 1px solid rgba(136, 100, 255, 0.3);
-            border-radius: 10px;
-            padding: 1rem 1.5rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            color: var(--accent-purple);
-        }
-
-        .arch-arrow {
-            color: var(--text-muted);
-            font-size: 1.5rem;
-        }
-
-        /* Author Section */
-        .author-section {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 2rem;
-            margin-top: 4rem;
-        }
-
-        .author-avatar {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--bg-primary);
-            flex-shrink: 0;
-        }
-
-        .author-info h4 {
-            font-size: 1.1rem;
-            color: var(--text-primary);
-            margin: 0 0 0.25rem;
-        }
-
-        .author-info p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            margin: 0 0 0.75rem;
-        }
-
-        .author-links {
-            display: flex;
-            gap: 0.75rem;
-        }
-
-        .author-links a {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            transition: all 0.3s ease;
-        }
-
-        .author-links a:hover {
-            background: var(--bg-card-hover);
-            border-color: var(--accent-primary);
-            color: var(--accent-primary);
-        }
-
-        .author-links svg {
-            width: 18px;
-            height: 18px;
-        }
-
-        /* Footer */
-        footer {
-            position: relative;
-            z-index: 1;
-            padding: 3rem;
-            border-top: 1px solid var(--border-color);
-            background: rgba(10, 10, 15, 0.8);
-            backdrop-filter: blur(20px);
-        }
-
-        .footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 2rem;
-        }
-
-        .footer-left {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .footer-logo {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.2rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .footer-text {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        .footer-social {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .footer-social a {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            transition: all 0.3s ease;
-        }
-
-        .footer-social a:hover {
-            background: var(--bg-card-hover);
-            border-color: var(--accent-primary);
-            color: var(--accent-primary);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0, 255, 136, 0.15);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            nav {
-                padding: 1rem 1.5rem;
-            }
-
-            .nav-links {
-                display: none;
-            }
-
-            .article-header {
-                padding: 3rem 1.5rem 2rem;
-            }
-
-            .article-content {
-                padding: 2rem 1.5rem 4rem;
-            }
-
-            pre {
-                padding: 1rem;
-                font-size: 0.8rem;
-            }
-
-            .arch-flow {
-                flex-direction: column;
-            }
-
-            .arch-arrow {
-                transform: rotate(90deg);
-            }
-
-            .author-section {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .author-links {
-                justify-content: center;
-            }
-
-            .footer-content {
-                flex-direction: column;
-                text-align: center;
-            }
-        }
-
-        /* Article Images */
-        .article-image {
-            margin: 2rem 0;
-            border-radius: 12px;
-            overflow: hidden;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .article-image img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-
-        .article-image figcaption {
-            padding: 1rem 1.5rem;
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.6);
-            text-align: center;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(0, 0, 0, 0.3);
-        }
-    </style>
-</head>
-<body>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="page-siem">
     <div class="bg-grid"></div>
     <div class="bg-glow bg-glow-1"></div>
     <div class="bg-glow bg-glow-2"></div>
 
     <nav>
-        <a href="index.html" class="logo">Cyber<span> Secrets</span></a>
-        <div class="nav-links">
-            <a href="index.html#posts">Articles</a>
-        </div>
+      <a href="index.html" class="logo">Cyber<span> Secrets</span></a>
+      <div class="nav-links">
+        <a href="index.html#posts">Articles</a>
+      </div>
     </nav>
 
     <main>
-        <header class="article-header">
-            <a href="index.html" class="back-link">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
-                </svg>
-                Back to Articles
-            </a>
-            <div class="article-meta">
-                <span class="article-tag">Blue Team</span>
-                <span class="article-date">October 18, 2026</span>
+      <header class="article-header">
+        <a href="index.html" class="back-link">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+          Back to Articles
+        </a>
+        <div class="article-meta">
+          <span class="article-tag">Blue Team</span>
+          <span class="article-date">October 18, 2026</span>
+        </div>
+        <h1>Building a Lightweight Python SIEM with Discord Notifications</h1>
+        <p class="article-intro">
+          A cost-effective SIEM solution using Python and Discord webhooks for
+          real-time security monitoring and alerting in Windows environments.
+        </p>
+      </header>
+
+      <article class="article-content">
+        <h2>Introduction</h2>
+        <p>
+          In the modern cybersecurity landscape, continuous monitoring and rapid
+          incident response are critical components of an organization's defense
+          strategy. Security Information and Event Management (SIEM) systems
+          serve as the central nervous system of security operations, providing
+          the visibility and intelligence needed to detect, investigate, and
+          respond to security threats.
+        </p>
+
+        <p>
+          This article explores the development of a lightweight, Python-based
+          SIEM solution that leverages Discord webhooks for real-time alerting,
+          making enterprise-grade security monitoring accessible to smaller
+          organizations and individual security practitioners.
+        </p>
+
+        <h2>Understanding SIEM</h2>
+
+        <h3>What is SIEM?</h3>
+        <p>
+          Security Information and Event Management (SIEM) is a comprehensive
+          security solution that aggregates, normalizes, and analyzes security
+          event data from diverse sources across an organization's IT
+          infrastructure. These sources include operating systems, applications,
+          network devices, security appliances, and cloud services.
+        </p>
+
+        <div class="info-box">
+          <h4>Core Functions of SIEM</h4>
+          <ul>
+            <li>
+              <strong>Log Collection and Aggregation:</strong> Centralizes log
+              data from servers, workstations, network devices, and security
+              tools
+            </li>
+            <li>
+              <strong>Normalization and Parsing:</strong> Converts raw log data
+              into a consistent format for effective correlation
+            </li>
+            <li>
+              <strong>Real-Time Monitoring:</strong> Analyzes incoming events
+              against predefined rules and threat intelligence
+            </li>
+            <li>
+              <strong>Correlation and Analysis:</strong> Identifies patterns
+              across multiple events and data sources
+            </li>
+            <li>
+              <strong>Compliance and Reporting:</strong> Maintains audit trails
+              and generates comprehensive reports
+            </li>
+          </ul>
+        </div>
+
+        <h3>Why Organizations Need SIEM</h3>
+        <p>
+          Without a SIEM solution, security teams face several challenges:
+          visibility gaps where security events scattered across systems create
+          blind spots, alert fatigue from thousands of daily alerts, slow
+          incident response times, and compliance difficulties. Smaller
+          organizations often lack the budget for enterprise solutions like
+          Splunk, IBM QRadar, or Microsoft Sentinel, which can cost tens of
+          thousands to millions of dollars annually.
+        </p>
+
+        <hr />
+
+        <h2>Technical Architecture</h2>
+
+        <div class="architecture">
+          <h4>System Architecture Flow</h4>
+          <div class="arch-flow">
+            <div class="arch-box">Windows Event Log</div>
+            <span class="arch-arrow">→</span>
+            <div class="arch-box">Event Monitor (pywin32)</div>
+            <span class="arch-arrow">→</span>
+            <div class="arch-box">Event Parser</div>
+            <span class="arch-arrow">→</span>
+            <div class="arch-box">Discord Webhook</div>
+          </div>
+        </div>
+
+        <p>
+          The Python SIEM operates as a Windows service or standalone
+          application that interfaces directly with the Windows Event Log
+          subsystem. The architecture consists of three primary components:
+        </p>
+
+        <ul>
+          <li>
+            <strong>Event Log Monitor:</strong> Uses the pywin32 library to
+            access the Windows Event Log API, allowing real-time security event
+            queries
+          </li>
+          <li>
+            <strong>Event Parser and Analyzer:</strong> Processes XML-formatted
+            event data, extracting account names, timestamps, source systems,
+            and metadata
+          </li>
+          <li>
+            <strong>Discord Notification Engine:</strong> Constructs JSON
+            payloads conforming to Discord's webhook API and transmits via HTTPS
+          </li>
+        </ul>
+
+        <h2>Monitored Security Events</h2>
+        <p>
+          The system focuses on seven critical Windows Event IDs that provide
+          comprehensive visibility into authentication activities, account
+          management, system changes, and potential data exfiltration vectors:
+        </p>
+
+        <div class="event-cards">
+          <div class="event-card">
+            <div class="event-card-header">
+              <span class="event-id">4624</span>
+              <h4>Successful Logon</h4>
             </div>
-            <h1>Building a Lightweight Python SIEM with Discord Notifications</h1>
-            <p class="article-intro">A cost-effective SIEM solution using Python and Discord webhooks for real-time security monitoring and alerting in Windows environments.</p>
-        </header>
+            <p>
+              Captures all successful authentication attempts. Helps establish
+              baseline user behavior and identify compromised credentials.
+            </p>
+          </div>
 
-        <article class="article-content">
-            <h2>Introduction</h2>
-            <p>In the modern cybersecurity landscape, continuous monitoring and rapid incident response are critical components of an organization's defense strategy. Security Information and Event Management (SIEM) systems serve as the central nervous system of security operations, providing the visibility and intelligence needed to detect, investigate, and respond to security threats.</p>
-
-            <p>This article explores the development of a lightweight, Python-based SIEM solution that leverages Discord webhooks for real-time alerting, making enterprise-grade security monitoring accessible to smaller organizations and individual security practitioners.</p>
-
-            <h2>Understanding SIEM</h2>
-
-            <h3>What is SIEM?</h3>
-            <p>Security Information and Event Management (SIEM) is a comprehensive security solution that aggregates, normalizes, and analyzes security event data from diverse sources across an organization's IT infrastructure. These sources include operating systems, applications, network devices, security appliances, and cloud services.</p>
-
-            <div class="info-box">
-                <h4>Core Functions of SIEM</h4>
-                <ul>
-                    <li><strong>Log Collection and Aggregation:</strong> Centralizes log data from servers, workstations, network devices, and security tools</li>
-                    <li><strong>Normalization and Parsing:</strong> Converts raw log data into a consistent format for effective correlation</li>
-                    <li><strong>Real-Time Monitoring:</strong> Analyzes incoming events against predefined rules and threat intelligence</li>
-                    <li><strong>Correlation and Analysis:</strong> Identifies patterns across multiple events and data sources</li>
-                    <li><strong>Compliance and Reporting:</strong> Maintains audit trails and generates comprehensive reports</li>
-                </ul>
+          <div class="event-card">
+            <div class="event-card-header">
+              <span class="event-id">4625</span>
+              <h4>Failed Logon</h4>
             </div>
+            <p>
+              Indicates brute-force attacks, password guessing, or misconfigured
+              applications. High volume followed by success suggests attack.
+            </p>
+          </div>
 
-            <h3>Why Organizations Need SIEM</h3>
-            <p>Without a SIEM solution, security teams face several challenges: visibility gaps where security events scattered across systems create blind spots, alert fatigue from thousands of daily alerts, slow incident response times, and compliance difficulties. Smaller organizations often lack the budget for enterprise solutions like Splunk, IBM QRadar, or Microsoft Sentinel, which can cost tens of thousands to millions of dollars annually.</p>
-
-            <hr>
-
-            <h2>Technical Architecture</h2>
-
-            <div class="architecture">
-                <h4>System Architecture Flow</h4>
-                <div class="arch-flow">
-                    <div class="arch-box">Windows Event Log</div>
-                    <span class="arch-arrow">→</span>
-                    <div class="arch-box">Event Monitor (pywin32)</div>
-                    <span class="arch-arrow">→</span>
-                    <div class="arch-box">Event Parser</div>
-                    <span class="arch-arrow">→</span>
-                    <div class="arch-box">Discord Webhook</div>
-                </div>
+          <div class="event-card">
+            <div class="event-card-header">
+              <span class="event-id">4720</span>
+              <h4>User Account Created</h4>
             </div>
+            <p>
+              Unauthorized account creation is a common persistence technique.
+              Ensures immediate awareness of new accounts.
+            </p>
+          </div>
 
-            <p>The Python SIEM operates as a Windows service or standalone application that interfaces directly with the Windows Event Log subsystem. The architecture consists of three primary components:</p>
-
-            <ul>
-                <li><strong>Event Log Monitor:</strong> Uses the pywin32 library to access the Windows Event Log API, allowing real-time security event queries</li>
-                <li><strong>Event Parser and Analyzer:</strong> Processes XML-formatted event data, extracting account names, timestamps, source systems, and metadata</li>
-                <li><strong>Discord Notification Engine:</strong> Constructs JSON payloads conforming to Discord's webhook API and transmits via HTTPS</li>
-            </ul>
-
-            <h2>Monitored Security Events</h2>
-            <p>The system focuses on seven critical Windows Event IDs that provide comprehensive visibility into authentication activities, account management, system changes, and potential data exfiltration vectors:</p>
-
-            <div class="event-cards">
-                <div class="event-card">
-                    <div class="event-card-header">
-                        <span class="event-id">4624</span>
-                        <h4>Successful Logon</h4>
-                    </div>
-                    <p>Captures all successful authentication attempts. Helps establish baseline user behavior and identify compromised credentials.</p>
-                </div>
-
-                <div class="event-card">
-                    <div class="event-card-header">
-                        <span class="event-id">4625</span>
-                        <h4>Failed Logon</h4>
-                    </div>
-                    <p>Indicates brute-force attacks, password guessing, or misconfigured applications. High volume followed by success suggests attack.</p>
-                </div>
-
-                <div class="event-card">
-                    <div class="event-card-header">
-                        <span class="event-id">4720</span>
-                        <h4>User Account Created</h4>
-                    </div>
-                    <p>Unauthorized account creation is a common persistence technique. Ensures immediate awareness of new accounts.</p>
-                </div>
-
-                <div class="event-card">
-                    <div class="event-card-header">
-                        <span class="event-id">4723</span>
-                        <h4>Password Change Attempt</h4>
-                    </div>
-                    <p>Records both successful and failed password changes. Helps detect unauthorized access and privilege escalation.</p>
-                </div>
-
-                <div class="event-card">
-                    <div class="event-card-header">
-                        <span class="event-id">4724</span>
-                        <h4>Password Reset</h4>
-                    </div>
-                    <p>Password resets by admin accounts can indicate account takeover. Critical for credential management audit trails.</p>
-                </div>
-
-                <div class="event-card">
-                    <div class="event-card-header">
-                        <span class="event-id">11707</span>
-                        <h4>Application Installed</h4>
-                    </div>
-                    <p>Unauthorized software represents security risk. Provides visibility into software changes on monitored systems.</p>
-                </div>
-
-                <div class="event-card">
-                    <div class="event-card-header">
-                        <span class="event-id">6416</span>
-                        <h4>USB Device Inserted</h4>
-                    </div>
-                    <p>USB devices present exfiltration risks and potential malware vectors. Helps prevent data loss and policy violations.</p>
-                </div>
+          <div class="event-card">
+            <div class="event-card-header">
+              <span class="event-id">4723</span>
+              <h4>Password Change Attempt</h4>
             </div>
+            <p>
+              Records both successful and failed password changes. Helps detect
+              unauthorized access and privilege escalation.
+            </p>
+          </div>
 
-            <hr>
-
-            <h2>Implementation</h2>
-
-            <h3>Prerequisites</h3>
-            <div class="info-box">
-                <h4>Requirements</h4>
-                <ul>
-                    <li><strong>Administrative Privileges:</strong> Required to access the Security Event Log</li>
-                    <li><strong>Windows Audit Policy:</strong> Must be configured to generate required security events</li>
-                    <li><strong>Discord Webhook:</strong> Create in the channel where alerts should appear</li>
-                </ul>
+          <div class="event-card">
+            <div class="event-card-header">
+              <span class="event-id">4724</span>
+              <h4>Password Reset</h4>
             </div>
+            <p>
+              Password resets by admin accounts can indicate account takeover.
+              Critical for credential management audit trails.
+            </p>
+          </div>
 
-            <h3>Installation</h3>
-            <p>Deploy the Python SIEM by installing the required dependencies:</p>
-            <pre data-lang="bash"><code>pip install pywin32 requests</code></pre>
+          <div class="event-card">
+            <div class="event-card-header">
+              <span class="event-id">11707</span>
+              <h4>Application Installed</h4>
+            </div>
+            <p>
+              Unauthorized software represents security risk. Provides
+              visibility into software changes on monitored systems.
+            </p>
+          </div>
 
-            <p>The pywin32 package provides Windows API bindings for Event Log access, while requests handles HTTP communication with Discord's webhook API.</p>
+          <div class="event-card">
+            <div class="event-card-header">
+              <span class="event-id">6416</span>
+              <h4>USB Device Inserted</h4>
+            </div>
+            <p>
+              USB devices present exfiltration risks and potential malware
+              vectors. Helps prevent data loss and policy violations.
+            </p>
+          </div>
+        </div>
 
-            <h3>Configuring Windows Event Logging</h3>
-            <p>Navigate to Local Group Policy Editor (<code>gpedit.msc</code>), then proceed to:</p>
-            <pre data-lang="text"><code>Computer Configuration
+        <hr />
+
+        <h2>Implementation</h2>
+
+        <h3>Prerequisites</h3>
+        <div class="info-box">
+          <h4>Requirements</h4>
+          <ul>
+            <li>
+              <strong>Administrative Privileges:</strong> Required to access the
+              Security Event Log
+            </li>
+            <li>
+              <strong>Windows Audit Policy:</strong> Must be configured to
+              generate required security events
+            </li>
+            <li>
+              <strong>Discord Webhook:</strong> Create in the channel where
+              alerts should appear
+            </li>
+          </ul>
+        </div>
+
+        <h3>Installation</h3>
+        <p>Deploy the Python SIEM by installing the required dependencies:</p>
+        <pre data-lang="bash"><code>pip install pywin32 requests</code></pre>
+
+        <p>
+          The pywin32 package provides Windows API bindings for Event Log
+          access, while requests handles HTTP communication with Discord's
+          webhook API.
+        </p>
+
+        <h3>Configuring Windows Event Logging</h3>
+        <p>
+          Navigate to Local Group Policy Editor (<code>gpedit.msc</code>), then
+          proceed to:
+        </p>
+        <pre data-lang="text"><code>Computer Configuration
   → Windows Settings
     → Security Settings
       → Advanced Audit Policy Configuration</code></pre>
 
-            <p>Enable these audit subcategories:</p>
-            <ul>
-                <li><strong>Account Logon:</strong> Enable "Audit Credential Validation" for Success and Failure</li>
-                <li><strong>Account Management:</strong> Enable "Audit User Account Management" for Success</li>
-                <li><strong>Logon/Logoff:</strong> Enable "Audit Logon" for Success and Failure</li>
-                <li><strong>Object Access:</strong> Enable "Audit Removable Storage" for Success</li>
-                <li><strong>Policy Change:</strong> Enable "Audit Audit Policy Change"</li>
-            </ul>
+        <p>Enable these audit subcategories:</p>
+        <ul>
+          <li>
+            <strong>Account Logon:</strong> Enable "Audit Credential Validation"
+            for Success and Failure
+          </li>
+          <li>
+            <strong>Account Management:</strong> Enable "Audit User Account
+            Management" for Success
+          </li>
+          <li>
+            <strong>Logon/Logoff:</strong> Enable "Audit Logon" for Success and
+            Failure
+          </li>
+          <li>
+            <strong>Object Access:</strong> Enable "Audit Removable Storage" for
+            Success
+          </li>
+          <li>
+            <strong>Policy Change:</strong> Enable "Audit Audit Policy Change"
+          </li>
+        </ul>
 
-            <p>Force a Group Policy update:</p>
-            <pre data-lang="cmd"><code>gpupdate /force</code></pre>
+        <p>Force a Group Policy update:</p>
+        <pre data-lang="cmd"><code>gpupdate /force</code></pre>
 
-            <h3>Running the Application</h3>
-            <pre data-lang="powershell"><code>python .\SIEM.py</code></pre>
+        <h3>Running the Application</h3>
+        <pre data-lang="powershell"><code>python .\SIEM.py</code></pre>
 
-            <figure class="article-image">
-                <img src="images/siem-terminal.png" alt="SIEM Python script running in PowerShell terminal showing startup logs">
-                <figcaption>The SIEM script initializing and beginning to monitor Windows Event Logs</figcaption>
-            </figure>
+        <figure class="article-image">
+          <img
+            src="images/siem-terminal.png"
+            alt="SIEM Python script running in PowerShell terminal showing startup logs"
+          />
+          <figcaption>
+            The SIEM script initializing and beginning to monitor Windows Event
+            Logs
+          </figcaption>
+        </figure>
 
-            <h3>Testing and Validation</h3>
-            <p>Validate the deployment by generating test events:</p>
-            <pre data-lang="cmd"><code>net user john P@ssw0rd /add</code></pre>
-            <p>This generates Event ID 4720, which should result in a Discord notification within seconds.</p>
+        <h3>Testing and Validation</h3>
+        <p>Validate the deployment by generating test events:</p>
+        <pre data-lang="cmd"><code>net user john P@ssw0rd /add</code></pre>
+        <p>
+          This generates Event ID 4720, which should result in a Discord
+          notification within seconds.
+        </p>
 
-            <figure class="article-image">
-                <img src="images/siem-discord-alert.png" alt="Discord notification showing User Account Created alert with Event ID 4720">
-                <figcaption>Discord webhook notification for a newly created user account (Event ID 4720)</figcaption>
-            </figure>
+        <figure class="article-image">
+          <img
+            src="images/siem-discord-alert.png"
+            alt="Discord notification showing User Account Created alert with Event ID 4720"
+          />
+          <figcaption>
+            Discord webhook notification for a newly created user account (Event
+            ID 4720)
+          </figcaption>
+        </figure>
 
-            <hr>
+        <hr />
 
-            <h2>Security Considerations</h2>
+        <h2>Security Considerations</h2>
 
-            <h3>Protecting the Webhook URL</h3>
-            <p>The Discord webhook URL functions as an authentication token. If compromised, an attacker could spam false alerts. Protect it by:</p>
-            <ul>
-                <li>Storing it in an encrypted configuration file or using Windows DPAPI</li>
-                <li>Restricting file system permissions on the configuration file</li>
-                <li>Rotating webhook URLs periodically and immediately if compromise is suspected</li>
-            </ul>
+        <h3>Protecting the Webhook URL</h3>
+        <p>
+          The Discord webhook URL functions as an authentication token. If
+          compromised, an attacker could spam false alerts. Protect it by:
+        </p>
+        <ul>
+          <li>
+            Storing it in an encrypted configuration file or using Windows DPAPI
+          </li>
+          <li>Restricting file system permissions on the configuration file</li>
+          <li>
+            Rotating webhook URLs periodically and immediately if compromise is
+            suspected
+          </li>
+        </ul>
 
-            <h3>Rate Limiting and Alert Management</h3>
-            <p>High-volume environments may generate thousands of events per hour. Implement these strategies:</p>
-            <ul>
-                <li>Batch similar events occurring within short timeframes</li>
-                <li>Establish severity classifications to prioritize critical events</li>
-                <li>Configure aggregation rules for common event patterns</li>
-            </ul>
+        <h3>Rate Limiting and Alert Management</h3>
+        <p>
+          High-volume environments may generate thousands of events per hour.
+          Implement these strategies:
+        </p>
+        <ul>
+          <li>Batch similar events occurring within short timeframes</li>
+          <li>
+            Establish severity classifications to prioritize critical events
+          </li>
+          <li>Configure aggregation rules for common event patterns</li>
+        </ul>
 
-            <h3>Monitoring the Monitor</h3>
-            <p>SIEM systems themselves become critical infrastructure:</p>
-            <ul>
-                <li>Verify the application process remains running</li>
-                <li>Test Discord webhook connectivity periodically</li>
-                <li>Generate heartbeat messages at regular intervals</li>
-                <li>Alert if the monitoring application fails</li>
-            </ul>
+        <h3>Monitoring the Monitor</h3>
+        <p>SIEM systems themselves become critical infrastructure:</p>
+        <ul>
+          <li>Verify the application process remains running</li>
+          <li>Test Discord webhook connectivity periodically</li>
+          <li>Generate heartbeat messages at regular intervals</li>
+          <li>Alert if the monitoring application fails</li>
+        </ul>
 
-            <hr>
+        <hr />
 
-            <h2>Extending the Solution</h2>
+        <h2>Extending the Solution</h2>
 
-            <h3>Adding Event Types</h3>
-            <p>The modular architecture supports easy extension:</p>
-            <ul>
-                <li>Identify new Event IDs using Event Viewer or Microsoft documentation</li>
-                <li>Add the Event ID to monitoring configuration</li>
-                <li>Implement parsing functions for the new event's XML structure</li>
-                <li>Design appropriate notification formats</li>
-            </ul>
+        <h3>Adding Event Types</h3>
+        <p>The modular architecture supports easy extension:</p>
+        <ul>
+          <li>
+            Identify new Event IDs using Event Viewer or Microsoft documentation
+          </li>
+          <li>Add the Event ID to monitoring configuration</li>
+          <li>Implement parsing functions for the new event's XML structure</li>
+          <li>Design appropriate notification formats</li>
+        </ul>
 
-            <h3>Integration Options</h3>
-            <ul>
-                <li><strong>SIEM Forwarding:</strong> Forward to enterprise SIEM systems like Splunk or Elastic</li>
-                <li><strong>Ticketing Integration:</strong> Auto-create incidents in ServiceNow or Jira</li>
-                <li><strong>Threat Intelligence:</strong> Enrich events with IP reputation and threat feeds</li>
-            </ul>
+        <h3>Integration Options</h3>
+        <ul>
+          <li>
+            <strong>SIEM Forwarding:</strong> Forward to enterprise SIEM systems
+            like Splunk or Elastic
+          </li>
+          <li>
+            <strong>Ticketing Integration:</strong> Auto-create incidents in
+            ServiceNow or Jira
+          </li>
+          <li>
+            <strong>Threat Intelligence:</strong> Enrich events with IP
+            reputation and threat feeds
+          </li>
+        </ul>
 
-            <h2>Conclusion</h2>
-            <p>This lightweight Python SIEM demonstrates that effective security monitoring need not require enterprise-scale budgets or infrastructure. By focusing on high-value security events and leveraging readily available technologies like Discord for notifications, organizations can implement meaningful security monitoring with minimal investment.</p>
+        <h2>Conclusion</h2>
+        <p>
+          This lightweight Python SIEM demonstrates that effective security
+          monitoring need not require enterprise-scale budgets or
+          infrastructure. By focusing on high-value security events and
+          leveraging readily available technologies like Discord for
+          notifications, organizations can implement meaningful security
+          monitoring with minimal investment.
+        </p>
 
-            <p>While this implementation cannot replace enterprise SIEM systems in large, complex environments, it proves that the fundamental principles of security monitoring—continuous visibility, real-time alerting, and centralized analysis—can be achieved with accessible tools and straightforward implementations.</p>
+        <p>
+          While this implementation cannot replace enterprise SIEM systems in
+          large, complex environments, it proves that the fundamental principles
+          of security monitoring—continuous visibility, real-time alerting, and
+          centralized analysis—can be achieved with accessible tools and
+          straightforward implementations.
+        </p>
 
-            <p style="margin-top: 2rem;">The complete source code and documentation are available at: <a href="https://github.com/AibelKingslayer/SIEM-Python" target="_blank">https://github.com/AibelKingslayer/SIEM-Python</a></p>
+        <p style="margin-top: 2rem">
+          The complete source code and documentation are available at:
+          <a
+            href="https://github.com/AibelKingslayer/SIEM-Python"
+            target="_blank"
+            rel="noopener noreferrer"
+            >https://github.com/AibelKingslayer/SIEM-Python</a
+          >
+        </p>
 
-            <div class="author-section">
-                <div class="author-avatar">A</div>
-                <div class="author-info">
-                    <h4>Aibel Jaic Aju</h4>
-                    <p>OSCP Certified | Penetration Tester | Security Researcher</p>
-                </div>
-            </div>
-        </article>
+        <div class="author-section">
+          <div class="author-avatar">A</div>
+          <div class="author-info">
+            <h4>Aibel Jaic Aju</h4>
+            <p>OSCP Certified | Penetration Tester | Security Researcher</p>
+          </div>
+        </div>
+      </article>
     </main>
 
     <footer>
-        <div class="footer-content">
-            <div class="footer-left">
-                <span class="footer-logo">Cyber Secrets</span>
-                <span class="footer-text">© 2026 Aibel. Cybersecurity Professional.</span>
-            </div>
-            <div class="footer-social">
-                <a href="https://github.com/AibelKingslayer/AibelKingslayer" target="_blank" aria-label="GitHub">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                    </svg>
-                </a>
-                <a href="https://www.linkedin.com/in/aibel-aju/" target="_blank" aria-label="LinkedIn">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                    </svg>
-                </a>
-            </div>
+      <div class="footer-content">
+        <div class="footer-left">
+          <span class="footer-logo">Cyber Secrets</span>
+          <span class="footer-text"
+            >© 2026 Aibel. Cybersecurity Professional.</span
+          >
         </div>
+        <div class="footer-social">
+          <a
+            href="https://github.com/AibelKingslayer/AibelKingslayer"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+              />
+            </svg>
+          </a>
+          <a
+            href="https://www.linkedin.com/in/aibel-aju/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="LinkedIn"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"
+              />
+            </svg>
+          </a>
+        </div>
+      </div>
     </footer>
-</body>
+  </body>
 </html>
