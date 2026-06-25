@@ -1,8 +1,11 @@
-+++
-title = "About"
-date = "2025-08-12"
-author = "Aibel"
-+++
+---
+title: "About"
+date: 2025-08-12
+author: "Aibel"
+layout: "about"
+url: "/about/"
+summary: "About Aibel — cybersecurity professional, OSCP certified, penetration tester."
+---
 
 # whoami
 
