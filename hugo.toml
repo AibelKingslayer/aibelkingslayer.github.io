@@ -1,0 +1,39 @@
+baseURL = "https://aibelkingslayer.github.io/"
+locale = "en-us"
+title = "Aibel's Security Blog"
+theme = "terminal"
+paginate = 5
+
+[params]
+  contentTypeName = "posts"
+  themeColor = "green"
+  showMenuItems = 3
+  showLanguageSelector = false
+  fullWidthTheme = false
+  centerTheme = true
+  autoCover = true
+  readingTime = true
+  favicon = ""
+  description = "Cybersecurity, penetration testing, and CTF writeups by Aibel."
+
+  [params.logo]
+    logoText = "~/aibel"
+    logoHomeLink = "/"
+
+[[menu.main]]
+  identifier = "about"
+  name = "about"
+  url = "/about"
+  weight = 10
+
+[[menu.main]]
+  identifier = "blog"
+  name = "blog"
+  url = "/posts"
+  weight = 20
+
+[[menu.main]]
+  identifier = "tags"
+  name = "tags"
+  url = "/tags"
+  weight = 30
