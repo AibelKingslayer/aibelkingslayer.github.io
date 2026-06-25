@@ -1,6 +1,6 @@
 baseURL = "https://aibelkingslayer.github.io/"
 locale = "en-us"
-title = "Aibel's Security Blog"
+title = "Security Slayer"
 theme = "PaperMod"
 paginate = 5
 enableRobotsTXT = true
@@ -10,7 +10,7 @@ buildExpired = false
 
 [params]
   env = "production"
-  title = "Aibel's Security Blog"
+  title = "Security Slayer"
   description = "Cybersecurity, penetration testing, and CTF writeups by Aibel."
   author = "Aibel"
   defaultTheme = "dark"
