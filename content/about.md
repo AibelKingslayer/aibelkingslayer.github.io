@@ -9,17 +9,13 @@ summary: "About Aibel — cybersecurity professional, OSCP certified, penetratio
 
 # whoami
 
-I'm **Aibel** — a cybersecurity professional who lives and breathes offensive security. I spend my days breaking things (legally) and my nights learning how to break them better.
-
-My passion for cybersecurity isn't something I turned on for a job title — it's the kind of obsession that has you reading CVE disclosures at midnight and spinning up vulnerable VMs on a Saturday morning just because it's fun. I believe in learning by doing: the terminal is my classroom, and every machine I compromise teaches me something new.
+I'm Aibel, a cybersecurity professional deeply focused on offensive security. During the day, I break things legally, and at night, I learn how to do it even better. My passion for cybersecurity isn't just tied to my job; it's an obsession. I often find myself reading CVE disclosures at midnight and setting up vulnerable VMs on Saturday mornings for fun. I believe in learning by doing: the terminal is my classroom, and every machine I compromise teaches me something new.
 
 ---
 
 ## What I Do
 
-I specialize in **penetration testing and offensive security**, with a focus on network exploitation, Active Directory attacks, privilege escalation, and web application testing. Whether it's chaining vulnerabilities to achieve full domain compromise or hunting for that one misconfiguration that cracks open a system — I'm in my element.
-
-Beyond the technical side, I care deeply about **documentation and clear reporting** — because a vulnerability no one understands can't be fixed.
+I specialize in penetration testing and offensive security. My main focus is on network exploitation, Active Directory attacks, privilege escalation, and web application testing. Whether I'm chaining vulnerabilities to achieve full domain compromise or hunting for that one misconfiguration that opens up a system, I thrive in these situations. On top of the technical aspects, I really value documentation and clear reporting. A vulnerability that no one understands cannot be fixed.
 
 ---
 
@@ -32,7 +28,7 @@ I've put in the hours to back up what I know with credentials that matter:
 | **OSCP** — Offensive Security Certified Professional | Offensive Security |
 | **OSCP+** | Offensive Security |
 | **E\|HA** — Ethical Hacking Associate | EC-Council |
-| **C\|FA** — Cybersecurity Fundamentals Associate | EC-Council |
+| **C\|FA** — Cyber Forensics Associate | EC-Council |
 | **Microsoft Networking Fundamentals** | Microsoft |
 | **Microsoft Security Fundamentals** | Microsoft |
 | **Pentesting Warrior** | HackLearners |
