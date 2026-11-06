@@ -35,6 +35,7 @@ I've put in the hours to back up what I know with credentials that matter:
 |---|---|
 | **OSCP** — Offensive Security Certified Professional | Offensive Security |
 | **OSCP+** | Offensive Security |
+| **CWES** — Certified Web Exploitation Specialist | HackTheBox |
 | **E\|HA** — Ethical Hacking Associate | EC-Council |
 | **C\|FA** — Cyber Forensics Associate | EC-Council |
 | **Microsoft Networking Fundamentals** | Microsoft |
