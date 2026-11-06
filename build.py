@@ -89,7 +89,7 @@ def shell(title: str, content: str, active: str, description: str = "Cybersecuri
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#070a08">
+  <meta name="theme-color" content="#080c14">
   <meta name="description" content="{esc(description)}">
   <title>{esc(title)} // Security Slayer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
