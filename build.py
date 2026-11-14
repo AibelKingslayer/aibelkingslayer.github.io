@@ -104,7 +104,7 @@ def shell(title: str, content: str, active: str, description: str = "Cybersecuri
     <div class="loader-core"><img class="loader-mark" src="/images/alt.png" alt=""><p>INITIALIZING SECURE UPLINK</p><div class="loader-track"><i></i></div><small>SYS.BOOT / <b>00</b>%</small></div>
   </div>
   <header class="site-header">
-    <a class="brand" href="/" aria-label="Security Slayer home"><i></i><span>AIBEL</span><b>//SEC</b></a>
+    <a class="brand" href="/" aria-label="Security Slayer home"><i></i><span>DEFALT</span><b>//SEC</b></a>
     <nav>{nav(active)}</nav>
     <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false"><i></i><i></i></button>
   </header>
